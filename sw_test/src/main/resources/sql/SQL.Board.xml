@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//dtd mapper 3.0//en" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.jh.pf.dao.BoardDao">
+
+<select id="getTotalCount" parameterType="Map" resultType="int">
+ 	select count(board_seq) from board where 
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} 
+</select>
+
+<select id="list" parameterType="Map" resultType="Map">
+ 	select `board_seq`, `type_seq`, `member_id`, `member_nick`, `title`, `content`, `has_file`, `hits`, DATE_FORMAT(create_date, '%Y-%m-%d') as create_date from board where  
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} order by board_seq desc limit ${startIndex}, ${pageSize}
+</select>
+
+<update id="updateHits" parameterType="int">
+	 update board set hits=hits+1 where `type_seq`=#{1} and `board_seq`=#{0}
+</update>
+
+<select id="getBoard" parameterType="int" resultType="Board">
+	select * from board where board_seq = #{0} and type_seq = #{1}
+</select>
+
+<insert id="write" parameterType="Board" useGeneratedKeys="true" keyProperty="boardSeq">
+	insert into board (`type_seq`, `member_idx`, `member_id`, `member_nick`, `title`, `content`, `has_file`, `create_date` ) 
+	values (#{typeSeq},#{memberIdx},#{memberId},#{memberNick},#{title},#{content}, #{hasFile},now())
+</insert>
+
+<update id="update" parameterType="Board">
+	update board set content = #{content}, has_file = #{hasFile}, update_date = now() where `type_seq`= #{typeSeq} and `board_seq`= #{boardSeq}
+</update>
+
+<delete id="delete" parameterType="int">
+	delete from board where `type_seq`= #{1} and `board_seq`= #{0}
+</delete>
+
+<update id="changeHasFile" parameterType="int">
+	update board set has_file=0 where board_seq = #{0}
+</update>
+
+<insert id="insertReply" parameterType="Map">
+	insert into reply (board_seq, board_type_seq, member_idx, member_nick, content, create_date)
+	values (#{boardSeq},#{typeSeq},#{memberIdx},#{memberNick},#{rText},now())
+</insert>
+
+<select id="rList" parameterType="int" resultType="Map">
+	select * from reply where board_seq=#{0} and board_type_seq=#{1}
+</select>
+
+<select id="findUnlinked" resultType="java.util.HashMap" flushCache="false" useCache="false">
+	SELECT b.seq as seq, b.board_type_idx as boardTypeIdx FROM board b 
+	LEFT OUTER JOIN attachment a ON b.seq = a.attach_doc_seq AND a.attach_doc_type = 'notice'
+	WHERE a.attach_seq IS NULL AND b.has_file = 1
+</select>
+	
+<insert id="insertBatchResult" parameterType="int">
+	insert into board_batch_rslt (target_date, update_cnt, create_date) 
+	values (DATE_FORMAT(NOW(), '%Y%m%d'), #{0}, NOW())
+</insert>
+	
+<update id="updateHasFileInfo" parameterType="java.util.HashMap">
+	update board set has_file = 0 
+	where seq in 
+	<foreach collection="seqs" item="t" separator="," open="(" close=")" >
+		#{t.seq}
+	</foreach>
+</update>
+ 
+</mapper>

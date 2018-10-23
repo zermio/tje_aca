@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//dtd mapper 3.0//en" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.jh.pf.dao.NoticeAttachDao">
+
+<select id="getFile" parameterType="int" resultType="Map">
+	select * from board_attach where `board_seq`=#{0} and `board_type`=#{1}
+</select>
+ 
+<insert id="attach" parameterType="Map">
+	insert into board_attach (`board_seq`, `board_type`, `filename`, `fakename`, `file_size`, `file_type`, `save_loc`, `create_date`)
+	values(#{boardSeq}, #{boardType}, #{filename}, #{fakename}, #{fileSize}, #{fileType}, 'loc', now())
+</insert>
+ 
+<delete id="deleteAttach" parameterType="int">
+	delete from board_attach where file_idx = #{0}
+</delete>
+
+<select id="getAttachFile" parameterType="int" resultType="Map">
+	select * from board_attach where file_idx = #{0}
+</select>
+
+<select id="hmFile" parameterType="int" resultType="int">
+	select count(file_idx) from board_attach where board_seq=#{0}
+</select>
+
+</mapper>

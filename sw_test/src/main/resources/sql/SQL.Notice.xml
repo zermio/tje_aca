@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//dtd mapper 3.0//en" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.jh.pf.dao.NoticeDao">
+
+<select id="getTotalCount" parameterType="Map" resultType="int">
+ 	select count(board_seq) from board where 
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} 
+</select>
+
+<select id="list" parameterType="Map" resultType="Map">
+ 	select * from board where 
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} order by board_seq desc limit ${startIndex}, ${pageSize}
+</select>
+
+<update id="updateHits" parameterType="int">
+	 update board set hits=hits+1 where `type_seq`=#{1} and `board_seq`=#{0}
+</update>
+
+<select id="getBoard" parameterType="int" resultType="Board">
+	select * from board where type_seq = #{1} and board_seq = #{0}
+</select>
+
+<insert id="write" parameterType="Board" useGeneratedKeys="true" keyProperty="boardSeq">
+	insert into board (`type_seq`, `member_idx`, `member_id`, `member_nick`, `title`, `content`, `has_file`, `create_date` )  
+	values (#{typeSeq},#{memberIdx},#{memberId},#{memberNick},#{title},#{content}, #{hasFile},now())
+</insert>
+
+<update id="update" parameterType="Board">
+	update board set content = #{content}, has_file = #{hasFile}, update_date = now() where `type_seq`= #{typeSeq} and `board_seq`= #{boardSeq}
+</update>
+
+<delete id="delete" parameterType="int">
+	delete from board where `type_seq`= #{1} and `board_seq`= #{0}
+</delete>
+
+<update id="changeHasFile" parameterType="int">
+	update board set has_file=0 where board_seq = #{0}
+</update>
+ 
+</mapper>
