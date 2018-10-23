@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//dtd mapper 3.0//en" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.tj.dao.BoardDao">
+
+ <insert id="write" parameterType="Board" useGeneratedKeys="true" keyProperty="boardSeq">
+ insert into board (`type_seq`,`member_id`, `member_nick`, `title`, `content`, `has_file`, `create_date` ) 
+ values (#{typeSeq},#{memberId},#{memberNick},#{title},#{content}, #{hasFile},now())
+ 	
+ 	<!-- AI가 안되는 경우에 따로 지정 -->
+ 	<!-- <selectKey keyProperty="boardSeq" resultType="int" order="AFTER">
+ 	select last_insert_id()
+ 	</selectKey> -->
+ 
+ </insert>
+ 
+ <insert id="attach" parameterType="Map">
+ insert into board_attach (`board_seq`, `board_type`, `filename`, `fakename`, `file_size`, `file_type`, `save_loc`, `create_date`)
+ values(#{boardSeq}, #{boardType}, #{filename}, #{fakename}, #{fileSize}, #{fileType}, 'loc', now())
+ </insert>
+ 
+ <select id="list" parameterType="Map" resultType="Map">
+ select * from board where 
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} order by board_seq desc limit ${startIndex}, ${pageSize}
+ </select>
+ 
+ <select id="getTotalCount" parameterType="Map" resultType="int">
+ select count(board_seq) from board where 
+ 	<if test="searchType!=null and searchType==1">
+ 		title like concat('%',#{searchText},'%') or content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==2">
+ 		title like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	<if test="searchType!=null and searchType==3">
+ 		content like concat('%',#{searchText},'%') and 
+ 	</if>
+ 	type_seq = #{typeSeq} 
+ </select> 
+ 
+ <update id="updateHits" parameterType="int">
+ update board set hits=hits+1 where `type_seq`=#{0} and `board_seq`=#{1}
+ </update>
+ 
+ <select id="getBoard" parameterType="int" resultType="Board">
+ select * from board where type_seq = #{0} and board_seq = #{1}
+ </select>
+ 
+ <select id="getFile" parameterType="int" resultType="Map">
+ select * from board_attach where `board_seq`=#{0} and `board_type`=#{1}
+ </select>
+ 
+ <delete id="delete" parameterType="int">
+ delete from board where `type_seq`= #{0} and `board_seq`= #{1}
+ </delete>
+ 
+ <update id="update" parameterType="Board">
+ update board set content = #{content}, update_date = now() where `type_seq`= #{typeSeq} and `board_seq`= #{boardSeq}
+ </update>
+ 
+ <select id="getAttachFile" parameterType="int" resultType="Map">
+ select * from board_attach where file_idx = #{fileIdx}
+ </select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//dtd mapper 3.0//en" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.tj.dao.MemberDao">
+
+	<insert id="join" parameterType="Member">
+	insert into member (type_seq, member_id, member_pw, member_name, member_nick, email, birth_date, create_date) 
+	values(1,#{memberId},sha2(md5(#{memberPw}),512),#{memberName},#{memberNick},#{email},#{birthDate},now())
+	</insert>
+	
+	<select id="findMember" parameterType="String" resultType="Member">
+	select * from member where member_id=#{0}
+	</select>
+	
+	<select id="makeCipherText" parameterType="String" resultType="String">
+	select sha2(md5(#{0}),512)
+	</select>
+	
+	<select id="checkId" parameterType="Map" resultType="int">
+	select count(member_idx) from member where member_id=#{ui}
+	</select>
+</mapper>

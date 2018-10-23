@@ -1,0 +1,109 @@
+package com.tj.dao.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.tj.dao.BoardDao;
+import com.tj.dto.Board;
+
+public class BoardDaoImpl implements BoardDao{
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	@Override
+	public int write(Board b) {
+		String sql = "insert into board (`type_seq`,`member_id`, `member_nick`, `title`, `content`, `create_date` ) values (?,?,?,?,?,now())";
+		int resultCnt = jdbcTemplate.update(sql, new Object[] {b.getTypeSeq(), b.getMemberId(), b.getMemberNick(), b.getTitle(), b.getContent()} );
+		
+		return resultCnt;
+	}
+
+	@Override
+	public List<Map<String, Object>> list(HashMap<String, String> params) {
+		String sql = "select * from board where ";
+		
+		String st = params.get("searchType")==null?"":params.get("searchType");
+		if(st.equals("2")) {
+			sql += "title like concat('%',?,'%') and ";
+		}else if(st.equals("3")) {
+			sql += "content like concat('%',?,'%') and ";
+		}else if(st.equals("1")) {
+			sql += "title like concat('%',?,'%') or content like concat('%',?,'%') and ";
+		}
+		sql += "type_seq = ? order by board_seq desc limit ?, ?";
+		
+		Object[] ob = null;
+		if(st.equals("")) {
+			ob = new Object[] {params.get("typeSeq"), Integer.parseInt(params.get("startIndex")), Integer.parseInt(params.get("pageSize"))};
+		}else if(st.equals("2")||st.equals("3")) {
+			ob = new Object[] {params.get("searchText"), params.get("typeSeq"), Integer.parseInt(params.get("startIndex")), Integer.parseInt(params.get("pageSize"))};
+		}else if(st.equals("1")) {
+			ob = new Object[] {params.get("searchText"), params.get("searchText"), params.get("typeSeq"), Integer.parseInt(params.get("startIndex")), Integer.parseInt(params.get("pageSize"))};
+		}
+		
+		List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, ob);
+		return result;
+	}
+
+	@Override
+	public int getTotalCount(HashMap<String,String> params) {
+		String sql = "select count(board_seq) from board where ";
+		
+		String st = params.get("searchType")==null?"":params.get("searchType");
+		if(st.equals("2")) {
+			sql += "title like concat('%',?,'%') and ";
+		}else if(st.equals("3")) {
+			sql += "content like concat('%',?,'%') and ";
+		}else if(st.equals("1")) {
+			sql += "title like concat('%',?,'%') or content like concat('%',?,'%') and ";
+		}
+		sql += "type_seq = ?";
+		
+		Object[] ob = null;
+		if(st.equals("")) {
+			ob = new Object[] {params.get("typeSeq")};
+		}else if(st.equals("2")||st.equals("3")) {
+			ob = new Object[] {params.get("searchText"), params.get("typeSeq")};
+		}else if(st.equals("1")) {
+			ob = new Object[] {params.get("searchText"), params.get("searchText"), params.get("typeSeq")};
+		}
+		return jdbcTemplate.queryForObject(sql, ob, Integer.class);
+	}
+
+	@Override
+	public int updateHits(int typeSeq, int boardSeq) {
+		String sql = "update board set hits=hits+1 where `type_seq`=? and `board_seq`=?";
+		int resultCnt = jdbcTemplate.update(sql, new Integer[] {typeSeq, boardSeq});
+		return resultCnt;
+	}
+
+	@Override
+	public Board getBoard(int typeSeq, int boardSeq) {
+		String sql = "select * from board where type_seq = ? and board_seq = ?";
+		Board result = (Board) jdbcTemplate.queryForObject(sql, new Integer[] {typeSeq, boardSeq}, new BeanPropertyRowMapper(Board.class));
+		return result;
+	}
+
+	@Override
+	public int delete(int typeSeq, int boardSeq) {
+		String sql = "delete from board where `type_seq`=? and `board_seq`=?";
+		int resultCnt = jdbcTemplate.update(sql, new Integer[] {typeSeq, boardSeq});
+		return resultCnt;
+	}
+
+	@Override
+	public int update(Board b) {
+		String sql = "update board set content=?, update_date=now() where `type_seq`=? and `board_seq`=?";
+		int result = jdbcTemplate.update(sql, new Object[] {b.getContent(), b.getTypeSeq(), b.getBoardSeq()});
+		return result;
+	}
+
+	
+}

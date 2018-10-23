@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//dtd config 3.0//en" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	
+	<!-- 쿼리 수행 결과를 dto에 자동 매핑 하기위해 dto 검색 -->
+	<typeAliases>
+	<!-- @Alias("Member") -->
+		<package name="com.tj.dto"/>
+	</typeAliases>
+	
+	<!-- 개별로 셋팅하는법 
+	<typeAliases aliias="Member" type="com.tj.dto.Member"/>
+	 -->
+</configuration>                                                                

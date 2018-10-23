@@ -1,0 +1,8 @@
+package com.tj.service;
+
+import java.util.HashMap;
+
+public interface AttachService {
+
+	public HashMap<String, Object> getAttachFile(int fileIdx);
+}
